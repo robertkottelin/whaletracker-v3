@@ -1,5 +1,6 @@
 import logo from './logo.svg';
 import './App.css';
+import {useState} from 'react';
 const { ethers, Contract } = require('ethers')
 //const player = require('play-sound')(opts = {})
 
@@ -25,13 +26,14 @@ const TetherCONTRACT_ADDRESS = '0xdAC17F958D2ee523a2206206994597C13D831ec7' // T
 let Tethercontract = new Contract(TetherCONTRACT_ADDRESS, tether_abi, provider);
 
 // Note: USDC uses 6 decimal places
-const TRANSFER_THRESHOLD = 100000000000000 // wei
+const TRANSFER_THRESHOLD = 1000000000 // wei
 
 function App() {
   const tethername = Tethercontract.name()
   const USDCname = USDCcontract.name()
   console.log(`Whale tracker started!\nListening for large transfers on ${USDCname} and ${tethername}`)
-  var list = [];
+  const [list, setList] = useState([]);
+
   
   USDCcontract.on('Transfer', (from, to, amount, data) => {
       if(amount.toNumber() >= TRANSFER_THRESHOLD) {
@@ -40,7 +42,7 @@ function App() {
           console.log('Amount:', amount.toNumber())
           console.log('From:', from)
           console.log('To:', to)
-
+          setList(current => [...current, USDCname, amount.toNumber, from, to, data.transactionHash]);
       }
   })
 
@@ -51,17 +53,27 @@ function App() {
           console.log('Amount:', amount.toNumber())
           console.log('From:', from)
           console.log('To:', to)    
+          setList(current => [...current, USDCname, amount.toNumber, from, to, data.transactionHash]);
       }
   })
+
+  console.log(list)
 
   return (
     <div className="App">
       <header className="App-header">
         <img src={logo} className="App-logo" alt="logo" />
         <p>
-          Whale Tracker
+          Whale Tracker 
         </p>
       </header>
+      {list.map((element, index) => {
+      return (
+        <div key={index}>
+          <h2>{element}</h2>
+        </div>
+      );
+    })}
     </div>
   );
 }

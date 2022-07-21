@@ -1,6 +1,8 @@
-import logo from './logo.svg';
+import logo from './Whale.png';
 import './App.css';
+import React, { Component } from 'react';
 import {useState} from 'react';
+import { render } from 'react-dom';
 const { ethers, Contract } = require('ethers')
 //const player = require('play-sound')(opts = {})
 
@@ -25,57 +27,53 @@ const tether_abi = [{"constant":true,"inputs":[],"name":"name","outputs":[{"name
 const TetherCONTRACT_ADDRESS = '0xdAC17F958D2ee523a2206206994597C13D831ec7' // Tether
 let Tethercontract = new Contract(TetherCONTRACT_ADDRESS, tether_abi, provider);
 
+
 // Note: USDC uses 6 decimal places
 const TRANSFER_THRESHOLD = 1000000000 // wei
 
 function App() {
   const tethername = Tethercontract.name()
   const USDCname = USDCcontract.name()
-  console.log(`Whale tracker started!\nListening for large transfers on ${USDCname} and ${tethername}`)
-  const [list, setList] = useState([]);
-
+  //console.log(`Whale tracker started!\nListening for large transfers on ${USDCname} and ${tethername}`)
+  const [datalist, setData] = useState([
+    {from: 'test1', to: 'test1', amount: 100000},
+    {from: 'test2', to: 'test2', amount: 200000}
+  ])
   
   USDCcontract.on('Transfer', (from, to, amount, data) => {
       if(amount.toNumber() >= TRANSFER_THRESHOLD) {
-
-          console.log(`New whale transfer for ${USDCname}: https://etherscan.io/tx/${data.transactionHash}`)
-          console.log('Amount:', amount.toNumber())
-          console.log('From:', from)
-          console.log('To:', to)
-          setList(current => [...current, USDCname, amount.toNumber, from, to, data.transactionHash]);
+          // console.log(`New whale transfer for ${USDCname}: https://etherscan.io/tx/${data.transactionHash}`)
+          // console.log('Amount:', amount.toNumber())
+          // console.log('From:', from)
+          // console.log('To:', to)
+          setData(current => [...current, from, to, amount.toNumber()]);
       }
   })
 
   Tethercontract.on('Transfer', (from, to, amount, data) => {
       if(amount.toNumber() >= TRANSFER_THRESHOLD) {
-
-          console.log(`New whale transfer for ${tethername}: https://etherscan.io/tx/${data.transactionHash}`)
-          console.log('Amount:', amount.toNumber())
-          console.log('From:', from)
-          console.log('To:', to)    
-          setList(current => [...current, USDCname, amount.toNumber, from, to, data.transactionHash]);
+          // console.log(`New whale transfer for ${tethername}: https://etherscan.io/tx/${data.transactionHash}`)
+          // console.log('Amount:', amount.toNumber())
+          // console.log('From:', from)
+          // console.log('To:', to)    
+          setData(current => [...current, from, to, amount.toNumber()]);
       }
   })
 
-  console.log(list)
-
-  return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Whale Tracker 
-        </p>
-      </header>
-      {list.map((element, index) => {
-      return (
-        <div key={index}>
-          <h2>{element}</h2>
-        </div>
-      );
-    })}
-    </div>
-  );
-}
+    return (
+      <div className="App">
+        <header className="App-header">
+          <img src={logo} className="App-logo" alt="logo" />
+          <p>
+            Whale Tracker
+            y&apos;all!
+          </p>
+        </header>
+        <div>
+          {datalist.map(data => <div>{data.from}</div>)}
+      </div>
+      </div>
+    );
+  }
 
 export default App;

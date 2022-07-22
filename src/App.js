@@ -1,8 +1,9 @@
-import logo from './Whale.png';
+// import logo from './Whale.png';
 import './App.css';
 import React, { Component } from 'react';
 import {useState} from 'react';
 import { render } from 'react-dom';
+import { Series, DataFrame } from 'pandas-js';
 const { ethers, Contract } = require('ethers')
 //const player = require('play-sound')(opts = {})
 
@@ -29,51 +30,76 @@ let Tethercontract = new Contract(TetherCONTRACT_ADDRESS, tether_abi, provider);
 
 
 // Note: USDC uses 6 decimal places
-const TRANSFER_THRESHOLD = 1000000000 // wei
+const TRANSFER_THRESHOLD = 10000000000 // wei
 
-function App() {
+const App = () => {
   const tethername = Tethercontract.name()
   const USDCname = USDCcontract.name()
   //console.log(`Whale tracker started!\nListening for large transfers on ${USDCname} and ${tethername}`)
   const [datalist, setData] = useState([
-    {from: 'test1', to: 'test1', amount: 100000},
-    {from: 'test2', to: 'test2', amount: 200000}
+    {id: 1, from: 'test1', to: 'test1', amount: 100000},
+    {id: 2, from: 'test2', to: 'test2', amount: 200000}
   ])
+
+  var id = 1;
   
   USDCcontract.on('Transfer', (from, to, amount, data) => {
       if(amount.toNumber() >= TRANSFER_THRESHOLD) {
+          id ++;
           // console.log(`New whale transfer for ${USDCname}: https://etherscan.io/tx/${data.transactionHash}`)
           // console.log('Amount:', amount.toNumber())
           // console.log('From:', from)
           // console.log('To:', to)
-          setData(current => [...current, from, to, amount.toNumber()]);
+          const realAmount = amount.toNumber();
+          setData(current => [...current, {id, from, to, realAmount}]);
+          const uniqueList = getUnique(datalist,'id');
+          console.log(uniqueList);
       }
+
   })
 
-  Tethercontract.on('Transfer', (from, to, amount, data) => {
-      if(amount.toNumber() >= TRANSFER_THRESHOLD) {
-          // console.log(`New whale transfer for ${tethername}: https://etherscan.io/tx/${data.transactionHash}`)
-          // console.log('Amount:', amount.toNumber())
-          // console.log('From:', from)
-          // console.log('To:', to)    
-          setData(current => [...current, from, to, amount.toNumber()]);
-      }
-  })
+  // Tethercontract.on('Transfer', (from, to, amount, data) => {
+  //     if(amount.toNumber() >= TRANSFER_THRESHOLD) {
+  //         // console.log(`New whale transfer for ${tethername}: https://etherscan.io/tx/${data.transactionHash}`)
+  //         // console.log('Amount:', amount.toNumber())
+  //         // console.log('From:', from)
+  //         // console.log('To:', to)    
+  //         setData(current => [...current, {id, from, to, amount}]);
+  //         id ++;
+  //         console.log(datalist);
+  //     }
+  // })
 
-    return (
+  function getUnique(datalist, index) {
+
+    const unique = datalist
+         .map(e => e[index])
+  
+         // store the keys of the unique objects
+         .map((e, i, final) => final.indexOf(e) === i && i)
+    
+         // eliminate the dead keys & store unique objects
+        .filter(e => datalist[e]).map(e => datalist[e]);      
+  
+     return unique;
+  }
+
+
+
+  return (
       <div className="App">
         <header className="App-header">
-          <img src={logo} className="App-logo" alt="logo" />
+          {/* <img src={} className="App-logo" alt="logo" /> */}
           <p>
             Whale Tracker
-            y&apos;all!
+            {getUnique(datalist,'id').map(function(data, index){
+              return (<li key={index}>{data.id}</li>)
+            })}
+
           </p>
         </header>
-        <div>
-          {datalist.map(data => <div>{data.from}</div>)}
-      </div>
       </div>
     );
-  }
+  };
 
 export default App;

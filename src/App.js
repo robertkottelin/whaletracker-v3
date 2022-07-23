@@ -84,19 +84,35 @@ const App = () => {
      return unique;
   }
 
-
-
   return (
       <div className="App">
         <header className="App-header">
           {/* <img src={} className="App-logo" alt="logo" /> */}
           <p>
-            Whale Tracker
-            {getUnique(datalist,'id').map(function(data, index){
+            {/* {getUnique(datalist,'id').map(function(data, index){
               return (<li key={index}>{data.id}</li>)
-            })}
-
+            })} */}
+            {/* {JSON.stringify(getUnique(datalist,'id'))} */}
           </p>
+            <table>
+              <caption>Whale Tracker</caption>
+              <thead>
+                <tr>
+                  <th>From</th>
+                  <th>To</th>
+                  <th>Amount</th>
+                </tr>
+              </thead>
+              <tbody>
+                {getUnique(datalist,'id').map(data => (
+                  <tr key={data.id}>
+                    <td>{data.from}</td>
+                    <td>{data.to}</td>
+                    <td>{data.amount}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
         </header>
       </div>
     );

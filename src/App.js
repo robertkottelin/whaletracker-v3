@@ -5,6 +5,8 @@ import {useState} from 'react';
 import Table from 'react-bootstrap/Table';
 import { render } from 'react-dom';
 import { Series, DataFrame } from 'pandas-js';
+import $ from "jquery";
+import ReactTable from "react-table";
 const { ethers, Contract } = require('ethers')
 //const player = require('play-sound')(opts = {})
 
@@ -36,18 +38,19 @@ const TRANSFER_THRESHOLD = 10000000000 // wei
 const App = () => {
   const tethername = Tethercontract.name()
   const USDCname = USDCcontract.name()
-  //console.log(`Whale tracker started!\nListening for large transfers on ${USDCname} and ${tethername}`)
   const [datalist, setData] = useState([])
+  //console.log(`Whale tracker started!\nListening for large transfers on ${USDCname} and ${tethername}`)
+
 
   var id = 1;
   
   USDCcontract.on('Transfer', (from, to, amount, data, transactionHash) => {
       if(amount.toNumber() >= TRANSFER_THRESHOLD) {
           id ++;
-          console.log(`New whale transfer for ${USDCname}: https://etherscan.io/tx/${data.transactionHash}`)
+          //console.log(`New whale transfer for ${USDCname}: https://etherscan.io/tx/${data.transactionHash}`)
           // console.log('Amount:', amount.toNumber())
           // console.log('From:', from)
-          console.log('data:', data)
+          // console.log('data:', data)
           const realAmount = amount.toNumber();
           const hash = data.transactionHash;
           const name = data.address;
@@ -57,18 +60,6 @@ const App = () => {
       }
 
   })
-
-  // Tethercontract.on('Transfer', (from, to, amount, data) => {
-  //     if(amount.toNumber() >= TRANSFER_THRESHOLD) {
-  //         // console.log(`New whale transfer for ${tethername}: https://etherscan.io/tx/${data.transactionHash}`)
-  //         // console.log('Amount:', amount.toNumber())
-  //         // console.log('From:', from)
-  //         // console.log('To:', to)    
-  //         setData(current => [...current, {id, from, to, amount}]);
-  //         id ++;
-  //         console.log(datalist);
-  //     }
-  // })
 
   function getUnique(datalist, index) {
 
@@ -85,45 +76,72 @@ const App = () => {
   
      return unique;
   }
-
-  return (
-      <div className="App">
-        <header className="App-header">
-          {/* <img src={} className="App-logo" alt="logo" /> */}
-          <p>
-            {/* {getUnique(datalist,'id').map(function(data, index){
-              return (<li key={index}>{data.id}</li>)
-            })} */}
-            {/* {JSON.stringify(getUnique(datalist,'id'))} */}
-          </p>
-            <table>
-              <caption>Whale Tracker</caption>
-              <thead>
-                <tr>
-                  {/* <th>ID</th> */}
-                  <th>Contract Address</th>
-                  <th>From</th>
-                  <th>To</th>
-                  <th>Amount</th>
-                  <th>TxnHash</th>
-                </tr>
-              </thead>
-              <tbody>
-                {getUnique(datalist,'hash').map(data => (
-                  <tr key={data.id}>
-                    {/* <td>{data.id}</td> */}
-                    <td>{data.name}</td>
-                    <td>{data.from}</td>
-                    <td>{data.to}</td>
-                    <td>{data.realAmount}</td>
-                    <td>{data.hash}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-        </header>
+    return (
+      <div>
+        <ReactTable
+          data={datalist}
+          pageSizeOptions={[20, 30, 50, 100, 200, 500]}
+          columns={[
+            {
+              Header: "Name",
+              columns: [
+                {
+                  Header: "Name",
+                  accessor: "name",
+                  width: 200
+                },
+                {
+                  Header: "ID",
+                  accessor: 'id',
+                  width: 100
+                }
+              ]
+            },
+            {
+              Header: "Info",
+              columns: [
+                {
+                  Header: "Hash",
+                  accessor: "hash",
+                  minWidth: 100
+                },
+                {
+                  Header: "From",
+                  accessor: "from",
+                  minWidth: 100
+                },
+                {
+                  Header: "To",
+                  accessor: "to",
+                  width: 100
+                },
+                {
+                  Header: "Amount",
+                  accessor: "realAmount",
+                  width: 50
+                }
+              ]
+            }
+          ]}
+          defaultPageSize={20}
+          className="-striped -highlight"
+          getTableProps={() => {
+            return {
+              onScroll: e => {
+                if (this.tableScrollTop === e.target.scrollTop) {
+                  let left = e.target.scrollLeft > 0 ? e.target.scrollLeft : 0;
+                  $(".ReactTable .rt-tr .frozen").css({ left: left });
+                } else {
+                  this.tableScrollTop = e.target.scrollTop;
+                }
+              }
+            };
+          }}
+        />
+        <br />
       </div>
     );
-  };
+  }
+
 
 export default App;

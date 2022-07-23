@@ -2,6 +2,7 @@
 import './App.css';
 import React, { Component } from 'react';
 import {useState} from 'react';
+import Table from 'react-bootstrap/Table';
 import { render } from 'react-dom';
 import { Series, DataFrame } from 'pandas-js';
 const { ethers, Contract } = require('ethers')
@@ -30,29 +31,27 @@ let Tethercontract = new Contract(TetherCONTRACT_ADDRESS, tether_abi, provider);
 
 
 // Note: USDC uses 6 decimal places
-const TRANSFER_THRESHOLD = 10000000000 // wei
+const TRANSFER_THRESHOLD = 100000000 // wei
 
 const App = () => {
   const tethername = Tethercontract.name()
   const USDCname = USDCcontract.name()
   //console.log(`Whale tracker started!\nListening for large transfers on ${USDCname} and ${tethername}`)
-  const [datalist, setData] = useState([
-    {id: 1, from: 'test1', to: 'test1', amount: 100000},
-    {id: 2, from: 'test2', to: 'test2', amount: 200000}
-  ])
+  const [datalist, setData] = useState([])
 
   var id = 1;
   
-  USDCcontract.on('Transfer', (from, to, amount, data) => {
+  USDCcontract.on('Transfer', (from, to, amount, data, transactionHash) => {
       if(amount.toNumber() >= TRANSFER_THRESHOLD) {
           id ++;
           // console.log(`New whale transfer for ${USDCname}: https://etherscan.io/tx/${data.transactionHash}`)
           // console.log('Amount:', amount.toNumber())
           // console.log('From:', from)
-          // console.log('To:', to)
+          // console.log('hash:', data.transactionHash)
           const realAmount = amount.toNumber();
-          setData(current => [...current, {id, from, to, realAmount}]);
-          const uniqueList = getUnique(datalist,'id');
+          const hash = data.transactionHash;
+          setData(current => [...current, {id, hash, from, to, realAmount}]);
+          const uniqueList = getUnique(datalist,'hash');
           console.log(uniqueList);
       }
 
@@ -79,7 +78,9 @@ const App = () => {
          .map((e, i, final) => final.indexOf(e) === i && i)
     
          // eliminate the dead keys & store unique objects
-        .filter(e => datalist[e]).map(e => datalist[e]);      
+        .filter(e => datalist[e]).map(e => datalist[e])
+
+        .sort(); 
   
      return unique;
   }
@@ -94,21 +95,25 @@ const App = () => {
             })} */}
             {/* {JSON.stringify(getUnique(datalist,'id'))} */}
           </p>
-            <table>
+            <table striped bordered hover size="sm">
               <caption>Whale Tracker</caption>
               <thead>
                 <tr>
+                  {/* <th>ID</th> */}
                   <th>From</th>
                   <th>To</th>
                   <th>Amount</th>
+                  <th>TxnHash</th>
                 </tr>
               </thead>
               <tbody>
-                {getUnique(datalist,'id').map(data => (
+                {getUnique(datalist,'hash').map(data => (
                   <tr key={data.id}>
+                    {/* <td>{data.id}</td> */}
                     <td>{data.from}</td>
                     <td>{data.to}</td>
-                    <td>{data.amount}</td>
+                    <td>{data.realAmount}</td>
+                    <td>{data.hash}</td>
                   </tr>
                 ))}
               </tbody>

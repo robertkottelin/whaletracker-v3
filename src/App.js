@@ -31,7 +31,7 @@ let Tethercontract = new Contract(TetherCONTRACT_ADDRESS, tether_abi, provider);
 
 
 // Note: USDC uses 6 decimal places
-const TRANSFER_THRESHOLD = 100000000 // wei
+const TRANSFER_THRESHOLD = 10000000000 // wei
 
 const App = () => {
   const tethername = Tethercontract.name()
@@ -44,15 +44,16 @@ const App = () => {
   USDCcontract.on('Transfer', (from, to, amount, data, transactionHash) => {
       if(amount.toNumber() >= TRANSFER_THRESHOLD) {
           id ++;
-          // console.log(`New whale transfer for ${USDCname}: https://etherscan.io/tx/${data.transactionHash}`)
+          console.log(`New whale transfer for ${USDCname}: https://etherscan.io/tx/${data.transactionHash}`)
           // console.log('Amount:', amount.toNumber())
           // console.log('From:', from)
-          // console.log('hash:', data.transactionHash)
+          console.log('data:', data)
           const realAmount = amount.toNumber();
           const hash = data.transactionHash;
-          setData(current => [...current, {id, hash, from, to, realAmount}]);
+          const name = data.address;
+          setData(current => [...current, {name, id, hash, from, to, realAmount}]);
           const uniqueList = getUnique(datalist,'hash');
-          console.log(uniqueList);
+          // console.log(uniqueList);
       }
 
   })
@@ -95,11 +96,12 @@ const App = () => {
             })} */}
             {/* {JSON.stringify(getUnique(datalist,'id'))} */}
           </p>
-            <table striped bordered hover size="sm">
+            <table>
               <caption>Whale Tracker</caption>
               <thead>
                 <tr>
                   {/* <th>ID</th> */}
+                  <th>Contract Address</th>
                   <th>From</th>
                   <th>To</th>
                   <th>Amount</th>
@@ -110,6 +112,7 @@ const App = () => {
                 {getUnique(datalist,'hash').map(data => (
                   <tr key={data.id}>
                     {/* <td>{data.id}</td> */}
+                    <td>{data.name}</td>
                     <td>{data.from}</td>
                     <td>{data.to}</td>
                     <td>{data.realAmount}</td>
